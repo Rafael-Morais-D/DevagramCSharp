@@ -1,3 +1,12 @@
+using DevagramCSharp;
+using DevagramCSharp.Models;
+using DevagramCSharp.Repository;
+using DevagramCSharp.Repository.Impl;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -7,7 +16,32 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepositoryImpl>();
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<DevagramContext>(option => option.UseSqlServer(connectionString));
+
+var chaveCriptografia = Encoding.ASCII.GetBytes(ChaveJWT.ChaveSecreta);
+builder.Services.AddAuthentication(auth =>
+{
+    auth.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    auth.DefaultChallengeScheme= JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(autenticacao =>
+{
+    autenticacao.RequireHttpsMetadata = false;
+    autenticacao.SaveToken = true;
+    autenticacao.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(chaveCriptografia),
+        ValidateIssuer = false,
+        ValidateAudience = false
+    };
+});
+
 var app = builder.Build();
+
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -17,6 +51,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 
