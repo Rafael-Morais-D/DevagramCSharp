@@ -43,6 +43,59 @@ namespace DevagramCSharp.Controllers
             }
         }
 
+        [HttpPut]
+        public IActionResult AtualizarUsuario([FromForm] UsuarioRequisicaoDto usuariodto)
+        {
+            try
+            {
+                Usuario usuario = LerToken();
+
+                if (usuariodto != null)
+                {
+                    var erros = new List<string>();
+
+                    if (string.IsNullOrEmpty(usuariodto.Nome) || string.IsNullOrWhiteSpace(usuariodto.Nome))
+                    {
+                        erros.Add("Nome inválido");
+                    }
+                    
+                    if (erros.Count > 0)
+                    {
+                        return BadRequest(new ErrorRespostaDto()
+                        {
+                            Status = StatusCodes.Status400BadRequest,
+                            Erros = erros
+                        });
+                    }
+                    else
+                    {
+                        CosmicService cosmicService = new CosmicService();
+
+                        usuario.FotoPerfil = cosmicService.EnviarImagem(new ImagemDto
+                        {
+                            Imagem = usuariodto.FotoPerfil,
+                            Nome = usuariodto.Nome.Replace(" ", "")
+                        });
+                        usuario.Nome = usuariodto.Nome;
+
+                        _usuarioRepository.AtualizarUsuario(usuario);
+                    }
+                    
+                }
+
+                return Ok("Usuário atualizado com sucesso!");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Ocorreu um erro ao atualizar o usuário");
+                return StatusCode(StatusCodes.Status500InternalServerError, new ErrorRespostaDto()
+                {
+                    Descricao = $"Ocorreu o seguinte erro: {ex.Message}",
+                    Status = StatusCodes.Status500InternalServerError
+                });
+            }
+        }
+
         [HttpPost]
         [AllowAnonymous]
         public IActionResult SalvarUsuario([FromForm] UsuarioRequisicaoDto usuariodto)
