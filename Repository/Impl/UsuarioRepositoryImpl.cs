@@ -37,5 +37,10 @@ namespace DevagramCSharp.Repository.Impl
         {
             return _context.Usuarios.Any(u => u.Email == email);
         }
+
+        public List<Usuario> GetUsuarioPorNome(string nome)
+        {
+            return _context.Usuarios.Where(u => u.Nome.Contains(nome)).ToList();
+        }
     }
 }

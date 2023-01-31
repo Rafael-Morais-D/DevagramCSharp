@@ -43,5 +43,15 @@ namespace DevagramCSharp.Repository.Impl
         {
             return _context.Seguidores.FirstOrDefault(s => s.IdUsuarioSeguidor == idSeguidor && s.IdUsuarioSeguido == idSeguido);
         }
+
+        public int GetQtdeSeguidores(int idUsuario)
+        {
+            return _context.Seguidores.Count(s => s.IdUsuarioSeguido == idUsuario);
+        }
+
+        public int GetQtdeSeguindo(int idUsuario)
+        {
+            return _context.Seguidores.Count(s => s.IdUsuarioSeguidor == idUsuario);
+        }
     }
 }

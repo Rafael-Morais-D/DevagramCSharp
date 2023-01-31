@@ -11,5 +11,6 @@ namespace DevagramCSharp.Repository
         public void AtualizarUsuario(Usuario usuario);
 
         public bool VerificarEmail(string email);
+        List<Usuario> GetUsuarioPorNome(string nome);
     }
 }
