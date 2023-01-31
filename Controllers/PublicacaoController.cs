@@ -111,5 +111,49 @@ namespace DevagramCSharp.Controllers
                 });
             }
         }
+
+        [HttpGet]
+        [Route("feedusuario")]
+        public IActionResult FeedUsuario(int idUsuario)
+        {
+            try
+            {
+                List<PublicacaoFeedRespostaDto> feed = _publicacaoRepository.GetPublicacoesFeedUsuario(idUsuario);
+
+                if (feed != null)
+                {
+                    foreach (PublicacaoFeedRespostaDto feedResposta in feed)
+                    {
+                        Usuario usuario = _usuarioRepository.GetUsuarioPorId(feedResposta.IdUsuario);
+                        UsuarioRespostaDto usuarioRespostaDto = new UsuarioRespostaDto()
+                        {
+                            Nome = usuario.Nome,
+                            Avatar = usuario.FotoPerfil,
+                            IdUsuario = usuario.Id
+                        };
+                        feedResposta.Usuario = usuarioRespostaDto;
+
+                        List<Comentario> comentarios = _comentarioRepository.GetComentarioPorPublicacao(feedResposta.IdPublicacao);
+                        feedResposta.Comentarios = comentarios;
+
+                        List<Curtida> curtidas = _curtidaRepository.GetCurtidaPorPublicacao(feedResposta.IdPublicacao);
+                        feedResposta.Curtidas = curtidas;
+                    }
+
+                    return Ok(feed);
+                }
+
+                throw new Exception("O Feed do Usuário está vazio");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Ocorreu um erro ao carregar o feed do Usuário");
+                return StatusCode(StatusCodes.Status500InternalServerError, new ErrorRespostaDto()
+                {
+                    Descricao = $"Ocorreu o seguinte erro: {ex.Message}",
+                    Status = StatusCodes.Status500InternalServerError
+                });
+            }
+        }
     }
 }
